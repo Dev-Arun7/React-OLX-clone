@@ -1,58 +1,104 @@
-import React from 'react';
+import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom'
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { FirebaseContext } from '../../store/Context';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
+import { app } from '../../firebase/config';
+
 
 import Logo from '../../olx-logo.png';
 import './Signup.css';
 
 export default function Signup() {
+
+  const navigate = useNavigate();
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const { auth } = useContext(FirebaseContext);
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      // Create user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Save additional user data to Firestore
+      const firestore = getFirestore(app); // Initializie firestore instance
+      const userDocRef = doc(firestore, 'users', user.uid);
+
+      // Set document data with additional fields
+      await setDoc(userDocRef, {
+        username: username,
+        email: email,
+        phone: phone,
+        createdAt: new Date()
+      }).then(() => { navigate("/login") })
+      console.log('User signed up:', user);
+    } catch (error) {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.error('Signup error: ', errorCode, errorMessage)
+    }
+  }
+
   return (
     <div>
       <div className="signupParentDiv">
-        <img width="200px" height="200px" src={Logo}></img>
-        <form>
-          <label htmlFor="fname">Username</label>
+        <img width="200px" height="200px" src={Logo} alt="logo" />
+        <form onSubmit={handleSubmit}>
+          <label htmlFor="username">Username</label>
           <br />
           <input
             className="input"
             type="text"
-            id="fname"
-            name="name"
-            defaultValue="John"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            id="username"
+            name="username"
           />
           <br />
-          <label htmlFor="fname">Email</label>
+          <label htmlFor="email">Email</label>
           <br />
           <input
             className="input"
             type="email"
-            id="fname"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            id="email"
             name="email"
-            defaultValue="John"
           />
           <br />
-          <label htmlFor="lname">Phone</label>
+          <label htmlFor="phone">Phone</label>
           <br />
           <input
             className="input"
             type="number"
-            id="lname"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            id="phone"
             name="phone"
-            defaultValue="Doe"
           />
           <br />
-          <label htmlFor="lname">Password</label>
+          <label htmlFor="password">Password</label>
           <br />
           <input
             className="input"
             type="password"
-            id="lname"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            id="password"
             name="password"
-            defaultValue="Doe"
           />
           <br />
           <br />
-          <button>Signup</button>
+          <button type="submit">Signup</button>
         </form>
-        <a>Login</a>
+        <a href="/login">Login</a>
       </div>
     </div>
   );
