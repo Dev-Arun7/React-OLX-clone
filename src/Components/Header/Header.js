@@ -1,4 +1,6 @@
 import React, { useContext } from 'react';
+import { getAuth, signOut } from "firebase/auth";
+import { useNavigate } from 'react-router-dom'
 
 import './Header.css';
 import OlxLogo from '../../assets/OlxLogo';
@@ -6,9 +8,11 @@ import Search from '../../assets/Search';
 import Arrow from '../../assets/Arrow';
 import SellButton from '../../assets/SellButton';
 import SellButtonPlus from '../../assets/SellButtonPlus';
-import { AuthContext } from '../../store/Context';
+import { AuthContext, FirebaseContext } from '../../store/Context';
 
 function Header() {
+  const navigate = useNavigate();
+  const { firebase } = useContext(FirebaseContext)
   const { user } = useContext(AuthContext)
   console.log(user)
   return (
@@ -41,7 +45,11 @@ function Header() {
           <span>{user ? user.displayName : "Login"}</span>
           <hr />
         </div>
-        <span> Logout </span>
+        {user && <span onClick={() => {
+          const auth = getAuth();
+          signOut(auth);
+          navigate("/login")
+        }} > Logout </span>}
         <div className="sellMenu">
           <SellButton></SellButton>
           <div className="sellMenuContent">
