@@ -33,6 +33,7 @@ function App() {
           <Route path='/login' element={<Login />} />
           <Route path='/create' element={<Create />} />
           <Route path='/view' element={<ViewPost />} />
+          <Route path='/view' element={<Create />} />
         </Routes>
       </BrowserRouter>
     </div>

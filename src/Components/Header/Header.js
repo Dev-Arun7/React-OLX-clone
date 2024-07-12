@@ -42,7 +42,7 @@ function Header() {
           <Arrow></Arrow>
         </div>
         <div className="loginPage">
-          <span>{user ? user.displayName : "Login"}</span>
+          <span onClick={() => navigate('/login')} >{user ? user.displayName : "Login"}</span>
           <hr />
         </div>
         {user && <span onClick={() => {
