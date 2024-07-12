@@ -6,13 +6,13 @@ import { getFirestore } from "firebase/firestore";
 
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-    apiKey: "AIzaSyAwy-7X3lxl2aDP0FdTF7VgH7YvPKv6zU4",
-    authDomain: "fir-4f1e4.firebaseapp.com",
-    projectId: "fir-4f1e4",
-    storageBucket: "fir-4f1e4.appspot.com",
-    messagingSenderId: "957324014260",
-    appId: "1:957324014260:web:e57fb08e9564a384c31de1",
-    measurementId: "G-M1TBQB9814"
+  apiKey: "AIzaSyAwy-7X3lxl2aDP0FdTF7VgH7YvPKv6zU4",
+  authDomain: "fir-4f1e4.firebaseapp.com",
+  projectId: "fir-4f1e4",
+  storageBucket: "fir-4f1e4.appspot.com",
+  messagingSenderId: "957324014260",
+  appId: "1:957324014260:web:e57fb08e9564a384c31de1",
+  measurementId: "G-M1TBQB9814"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -32,12 +32,12 @@ export const FirebaseContext = createContext(null)
 export const AuthContext = createContext(null)
 
 export default function Context({ children }) {
-    const [user, setUser] = useState(null)
-    return (
-        <AuthContext.Provider value={{ user, setUser }}>
-            {children}
-        </AuthContext.Provider>
-    )
+  const [user, setUser] = useState(null)
+  return (
+    <AuthContext.Provider value={{ user, setUser }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 
@@ -200,7 +200,7 @@ export default App;
 
 
 
-Headers,js
+Headers, js
 import React, { useContext } from 'react';
 
 import './Header.css';
@@ -241,7 +241,7 @@ function Header() {
           <Arrow></Arrow>
         </div>
         <div className="loginPage">
-          <span>{user ? user.displayName: "Login"}</span>
+          <span>{user ? user.displayName : "Login"}</span>
           <hr />
         </div>
 
@@ -266,7 +266,7 @@ export default Header;
 ├── assets
 │   ├── images
 │   │   ├── banner copy.png
-│   │   ├── olx-logo.svg
+│   │   ├── olx - logo.svg
 │   │   └── svg
 │   │       └── svg.js
 │   └── styles
@@ -281,7 +281,7 @@ export default Header;
 │           ├── Home.css
 │           ├── Login.css
 │           └── Signup.css
-├── package-lock.json
+├── package - lock.json
 ├── package.json
 ├── public
 │   ├── Images
@@ -336,7 +336,7 @@ export default Header;
 │   ├── firebase
 │   │   └── config.js
 │   ├── index.js
-│   ├── olx-logo.png
+│   ├── olx - logo.png
 │   ├── reportWebVitals.js
 │   ├── setupTests.js
 │   └── store
@@ -373,123 +373,213 @@ export default Header;
 
 
 
-import React, { Fragment,useContext,useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getStorage, ref, uploadBytes,getDownloadURL } from "firebase/storage";
-import { collection,getFirestore,doc,setDoc } from "firebase/firestore"; 
-import {FirebaseContext,AuthContext} from './../../store/FirebaseContext'
-import './Create.css';
-import Header from '../Header/Header';
-const Create = () => {
-  
-  const [name,setname] = useState('')
 
-  
-  const [category,setcategory] = useState('')
 
-  const [price, setprice] = useState('')
-  const [description,setDescription] = useState('')
 
-  const [image, setimage] = useState(null)
-  const {firebase}=useContext(FirebaseContext)
-  const {user}=useContext(AuthContext)
- const firestore=getFirestore(firebase)
- const date = new Date().toDateString();
- const navigate = useNavigate()
 
-  
- const handleSubmit= async()=>{
-  if (!image) {
-    alert("Please select an image");
-    return;
-  }
-  try{
-    const storage = getStorage();
-    console.log(1, storage)
-    const storageRef = ref(storage, `/images/${image.name}`);
-    console.log(2 , storageRef)
-    const snapshot=await uploadBytes(storageRef, image)
-    console.log(3, snapshot)
-    const imageURL = await getDownloadURL(snapshot.ref);
-    const productsCollection = collection(firestore, "products");
-    await setDoc(doc(productsCollection), {
-     name,
-     category,
-     price,
-     imageURL,
-     description,
-     createdAt:date.toString(),
-     userId:user.uid
-    });
-    console.log("let going to navigate")
-    navigate("/");
-  }catch (error) {
-    console.error("Error uploading image or saving product:", error);
-  }
 
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import React, { useEffect, useContext, useState } from "react";
+import { getDocs, collection, getFirestore } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+import Heart from "../../assets/Heart";
+import "./Post.css";
+import { FirebaseContext } from "../../store/FirebaseContext";
+import { PostContext } from "./../../App";
+
+
+
+function Posts(props) {
+  const { searchResult } = props
+  const { firebase } = useContext(FirebaseContext);
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([])
+  const { setPostDetails } = useContext(PostContext);
+  const navigate = useNavigate();
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const firestore = getFirestore(firebase);
+      const querySnapshot = await getDocs(collection(firestore, "products"));
+      const data = querySnapshot.docs.map((product) => {
+        return {
+          ...product.data(),
+          id: product.id,
+        };
+      });
+      setProducts(data);
+    };
+    fetchData();
+  }, [firebase]);
+
+
+
+  useEffect(() => {
+    if (searchResult) {
+      const updatedProducts = products.filter(product => {
+        const lowerCaseMovieName = product.name.toLowerCase()
+        const lowerCaseMovieSearch = searchResult
+        return lowerCaseMovieName.includes(lowerCaseMovieSearch)
+      });
+
+      setFilteredProducts(updatedProducts);
+    } else {
+      setFilteredProducts([]);
+    }
+
+  }, [searchResult, products]);
+
+
+
 
   return (
-    <Fragment>
-      <Header />
-      <card>
-        <div className="centerDiv">
-            <label htmlFor="fname">Name</label>
-            <br />
-            <input
-            value={name}
-            onChange={(e)=>setname(e.target.value)}
-              className="input"
-              type="text"
-              id="fname"
-              name="Name"
-              defaultValue="John"
-            />
-            <br />
-            <label htmlFor="fname">Description</label>
-            <br />
-            <input
-            value={description}
-            onChange={(e)=>setDescription(e.target.value)}
-              className="input"
-              type="text"
-              id="fname"
-              name="des"
-              defaultValue="John"
-            />
-            <br />
-
-            <label htmlFor="fname">Category</label>
-            <br />
-            <input
-            value={category}
-            onChange={(e)=>setcategory(e.target.value)}
-              className="input"
-              type="text"
-              id="fname"
-              name="category"
-              defaultValue="John"
-            />
-            <br />
+    <div className="postParentDiv">
 
 
-            <label htmlFor="fname">Price</label>
-            <br />
-            <input value={price} onChange={(e)=>setprice(e.target.value)} className="input" type="number" id="fname" name="Price" />
-            <br />
-          
-          <br />
-          <img alt="Posts" width="200px" height="200px" src={image ? URL.createObjectURL(image):null}></img>
-       
-            <br />
-            <input onChange={(e)=>setimage(e.target.files[0])} type="file" />
-            <br />
-            <button onClick={handleSubmit} className="uploadBtn">upload and Submit</button>
-        
+      {filteredProducts.length > 0 ?
+        <div className="moreView">
+
+          <div className="heading">
+            <span>Search Result</span>
+            <span>View more</span>
+          </div>
+
+          <div className="cards">
+            {filteredProducts.map((product) => {
+              return (
+                <div className="card" onClick={() => {
+                  setPostDetails(product)
+                  navigate("/view")
+                }}>
+                  <div className="favorite">
+                    <Heart></Heart>
+                  </div>
+                  <div className="image">
+                    <img src={product.imageURL} alt="" />
+                  </div>
+                  <div className="content">
+                    <p className="rate">&#x20B9; {product.price}</p>
+                    <span className="kilometer">{product.category}</span>
+                    <p className="name">{product.name}</p>
+                  </div>
+                  <div className="date">
+                    <span>{product.createdAt}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </card>
-    </Fragment>
-  );
-};
+        : <div>
+          {searchResult.length > 0 && filteredProducts.length === 0 ?
+            <div className="heading">
+              <span>No result found</span>
+              <span>View more</span>
+            </div>
+            :
+            <div className="heading">
 
-export default Create;
+            </div>
+
+          }
+        </div>
+      }
+
+
+
+
+
+
+
+
+
+      <div className="moreView">
+        <div className="heading">
+          <span>Quick Menu</span>
+          <span>View more</span>
+        </div>
+        <div className="cards">
+          {products.map((product) => {
+            return (
+              <div className="card" onClick={() => {
+                setPostDetails(product)
+                navigate("/view")
+              }}>
+                <div className="favorite">
+                  <Heart></Heart>
+                </div>
+                <div className="image">
+                  <img src={product.imageURL} alt="" />
+                </div>
+                <div className="content">
+                  <p className="rate">&#x20B9; {product.price}</p>
+                  <span className="kilometer">{product.category}</span>
+                  <p className="name">{product.name}</p>
+                </div>
+                <div className="date">
+                  <span>{product.createdAt}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      {/* <div className="recommendations">
+                        <div className="heading">
+                        <span>Fresh recommendations</span>
+                        </div>
+                        <div className="cards">
+                        <div className="card">
+                            <div className="favorite">
+                            <Heart></Heart>
+                            </div>
+                            <div className="image">
+                            <img src="../../../Images/R15V3.jpg" alt="" />
+                            </div>
+                            <div className="content">
+                            <p className="rate">&#x20B9; 250000</p>
+                            <span className="kilometer">Two Wheeler</span>
+                            <p className="name"> YAMAHA R15V3</p>
+                            </div>
+                            <div className="date">
+                            <span>10/5/2021</span>
+                            </div>
+                        </div>
+                        </div>
+                    </div> */}
+    </div>
+  );
+}
+
+export default Posts;
+
+
+
+
+
+
+
+
+
+
+
+
