@@ -1,22 +1,38 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'; // Ensure BrowserRouter is imported correctly
-
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { useEffect, useContext } from 'react';
 import Home from './Pages/Home';
 import Create from './Pages/Create';
 import Login from './Pages/Login';
 import Signup from './Pages/Signup';
 import ViewPost from './Pages/ViewPost';
 import Footer from './Components/Footer/Footer';
+import { AuthContext, FirebaseContext } from './store/Context'
 
 function App() {
+  const auth = getAuth();
+  const { setUser } = useContext(AuthContext)
+  const { firebase } = useContext(FirebaseContext)
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user);
+        const uid = user.uid;
+        // ...
+      } else {
+        setUser(null);
+      }
+    });
+  })
   return (
     <div className="App">
       <BrowserRouter> {/* Wrap your Routes with BrowserRouter */}
         <Routes>
           <Route path='/' element={<Home />} />
           <Route path='/signup' element={<Signup />} />
-          <Route path='/login' element={<Login />} /> {/* Add '/' before login */}
-          <Route path='/create' element={<Create />} /> {/* Add '/' before create */}
-          <Route path='/view' element={<ViewPost />} /> {/* Add '/' before view */}
+          <Route path='/login' element={<Login />} />
+          <Route path='/create' element={<Create />} />
+          <Route path='/view' element={<ViewPost />} />
         </Routes>
       </BrowserRouter>
     </div>

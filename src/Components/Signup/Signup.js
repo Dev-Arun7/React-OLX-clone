@@ -1,23 +1,20 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom'
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { useNavigate } from 'react-router-dom';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { FirebaseContext } from '../../store/Context';
 import { getFirestore, doc, setDoc } from 'firebase/firestore';
 import { app } from '../../firebase/config';
-
 
 import Logo from '../../olx-logo.png';
 import './Signup.css';
 
 export default function Signup() {
-
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const { auth } = useContext(FirebaseContext);
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,8 +24,13 @@ export default function Signup() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
+      // Set displayName
+      await updateProfile(user, {
+        displayName: username,
+      });
+
       // Save additional user data to Firestore
-      const firestore = getFirestore(app); // Initializie firestore instance
+      const firestore = getFirestore(app); // Initialize firestore instance
       const userDocRef = doc(firestore, 'users', user.uid);
 
       // Set document data with additional fields
@@ -36,15 +38,18 @@ export default function Signup() {
         username: username,
         email: email,
         phone: phone,
-        createdAt: new Date()
-      }).then(() => { navigate("/login") })
+        createdAt: new Date(),
+      }).then(() => {
+        navigate("/login");
+      });
+
       console.log('User signed up:', user);
     } catch (error) {
       const errorCode = error.code;
       const errorMessage = error.message;
-      console.error('Signup error: ', errorCode, errorMessage)
+      console.error('Signup error: ', errorCode, errorMessage);
     }
-  }
+  };
 
   return (
     <div>
@@ -103,3 +108,4 @@ export default function Signup() {
     </div>
   );
 }
+
