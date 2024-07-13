@@ -6,8 +6,8 @@ import Create from './Pages/Create';
 import Login from './Pages/Login';
 import Signup from './Pages/Signup';
 import ViewPost from './Pages/ViewPost';
-import Footer from './Components/Footer/Footer';
 import { AuthContext, FirebaseContext } from './store/Context'
+import Post from './store/PostContext'
 
 function App() {
   const auth = getAuth();
@@ -26,16 +26,17 @@ function App() {
   })
   return (
     <div className="App">
-      <BrowserRouter> {/* Wrap your Routes with BrowserRouter */}
-        <Routes>
-          <Route path='/' element={<Home />} />
-          <Route path='/signup' element={<Signup />} />
-          <Route path='/login' element={<Login />} />
-          <Route path='/create' element={<Create />} />
-          <Route path='/view' element={<ViewPost />} />
-          <Route path='/view' element={<Create />} />
-        </Routes>
-      </BrowserRouter>
+      <Post>
+        <BrowserRouter>
+          <Routes>
+            <Route path='/' element={<Home />} />
+            <Route path='/signup' element={<Signup />} />
+            <Route path='/login' element={<Login />} />
+            <Route path='/create' element={<Create />} />
+            <Route path='/view' element={<ViewPost />} />
+          </Routes>
+        </BrowserRouter>
+      </Post>
     </div>
   );
 }

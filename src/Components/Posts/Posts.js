@@ -4,10 +4,14 @@ import { useNavigate } from 'react-router-dom'
 import Heart from '../../assets/Heart';
 import './Post.css';
 import { FirebaseContext } from '../../store/Context';
+import { PostContext } from '../../store/PostContext';
 
 function Posts() {
   const { firebase } = useContext(FirebaseContext);
   const [products, setProducts] = useState([]);
+  const navigate = useNavigate()
+  const { setPostDetails } = useContext(PostContext)
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,7 +37,12 @@ function Posts() {
         </div>
         <div className="cards">
           {products.map(product => (
-            <div className="card" key={product.id}>
+            <div className="card"
+              onClick={() => {
+                setPostDetails(product)
+                navigate('/view')
+              }}
+              key={product.id}>
               <div className="favorite">
                 <Heart />
               </div>
