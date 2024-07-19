@@ -1,54 +1,99 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { getFirestore, getDocs, collection, query, where } from "firebase/firestore";
-import { PostContext } from '../../App'
-import { FirebaseContext } from '../../store/FirebaseContext';
-import './View.css';
+useEffect(() => {
+  // Block the back button
+  const preventBack = () => {
+    window.history.pushState(null, null, window.location.href);
+  };
 
-function View() {
-  const [userDetails, setUserDetails] = useState()
-  const { postDetails } = useContext(PostContext)
-  const { firebase } = useContext(FirebaseContext)
+  window.history.pushState(null, null, window.location.href);
+  window.addEventListener('popstate', preventBack);
+
+  return () => {
+    window.removeEventListener('popstate', preventBack);
+  };
+}, []);
+
+
+
+
+
+
+//////////////////////////////////////////////////////////
+import React, { useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FirebaseContext } from '../../store/Context';
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+
+import Logo from '../../olx-logo.png';
+import './Login.css';
+
+function Login() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { firebase } = useContext(FirebaseContext);
+  const auth = getAuth();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { userId } = postDetails
-        const firestore = getFirestore(firebase)
-        const userCollection = collection(firestore, "users");
-        const q = query(userCollection, where("id", "==", userId))
-        const querySnapshot = await getDocs(q);
-        const data = querySnapshot.docs[0].data();
-        setUserDetails(data);
-      } catch (error) {
-        console.error("Error fetching data:", error.message);
-      }
-    }
-    fetchData()
-  },)
-  
-  return (
-    <div className="viewParentDiv">
-      <div className="imageShowDiv">
-        <img
-          src={postDetails?.imageURL}
-          alt=""
-        />
-      </div>
-      <div className="rightSection">
-        <div className="productDetails">
-          <p>&#x20B9;{postDetails?.price} </p>
-          <span>{postDetails?.name}</span>
-          <p>{postDetails?.category}</p>
-          <span>{postDetails?.createdAt}</span>
-        </div>
+    // Block the back button
+    const preventBack = () => {
+      window.history.pushState(null, null, window.location.href);
+    };
 
-        {userDetails && <div className="contactDetails">
-          <p>Seller details</p>
-          <p>{userDetails.userDisplay}</p>
-          <p>{userDetails.phone}</p>
-        </div>}
+    window.history.pushState(null, null, window.location.href);
+    window.addEventListener('popstate', preventBack);
+
+    return () => {
+      window.removeEventListener('popstate', preventBack);
+    };
+  }, []);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        navigate("/");
+      })
+      .catch((error) => {
+        const errorMessage = error.message;
+        alert(errorMessage);
+      });
+  }
+
+  return (
+    <div>
+      <div className="loginParentDiv">
+        <img width="200px" height="200px" src={Logo} alt='logo'></img>
+        <form onSubmit={handleLogin}>
+          <label htmlFor="fname">Email</label>
+          <br />
+          <input
+            className="input"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            id="fname"
+            name="email"
+          />
+          <br />
+          <label htmlFor="lname">Password</label>
+          <br />
+          <input
+            className="input"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            id="lname"
+            name="password"
+          />
+          <br />
+          <br />
+          <button>Login</button>
+        </form>
+        <a>Signup</a>
       </div>
     </div>
   );
 }
-export default View;
+
+export default Login;

@@ -34,7 +34,7 @@ function View() {
           src={postDetails?.imageURL}
           alt=""
         />
-      </div>
+      </div>a
       <div className="rightSection">
         <div className="productDetails">
           <p>&#x20B9;{postDetails?.price} </p>

@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'
 import { FirebaseContext } from '../../store/Context'
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
@@ -7,13 +7,23 @@ import Logo from '../../olx-logo.png';
 import './Login.css';
 
 function Login() {
-
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('')
   const { firebase } = useContext(FirebaseContext)
-  // const { auth } = useContext(FirebaseContext);
   const auth = getAuth();
+
+  useEffect(() => {
+    // Redirect if user is already logged in
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        navigate('/');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [auth, navigate]);
+
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -30,6 +40,7 @@ function Login() {
         alert(errorMessage)
       });
   }
+
   return (
     <div>
       <div className="loginParentDiv">
@@ -60,7 +71,7 @@ function Login() {
           <br />
           <button>Login</button>
         </form>
-        <a>Signup</a>
+        <a onClick={() => navigate('/signup')}>Signup</a>
       </div>
     </div>
   );
