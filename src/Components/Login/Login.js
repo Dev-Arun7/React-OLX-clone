@@ -14,7 +14,8 @@ function Login() {
   const auth = getAuth();
 
   useEffect(() => {
-    // Redirect if user is already logged in
+    // Redirecting to home if user is already logged in
+    // something
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         navigate('/');
@@ -78,3 +79,6 @@ function Login() {
 }
 
 export default Login;
+
+
+
