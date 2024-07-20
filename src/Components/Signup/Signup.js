@@ -122,7 +122,7 @@ export default function Signup() {
           />
           <br />
           <error>
-            {errors.password?.type === "minLength" && "Entered password is less than 4 digits"}
+            {errors.password?.type === "minLength" && "Entered password should be more than 4 letters"}
           </error>
           <br />
           <button type="submit">Signup</button>
