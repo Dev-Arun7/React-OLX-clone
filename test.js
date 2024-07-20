@@ -1,85 +1,140 @@
-// import React, { useState, useContext, useEffect } from 'react';
-// import { useNavigate } from 'react-router-dom'
-// import { useForm } from 'react-hook-form';
-// import { FirebaseContext } from '../../store/Context'
-// import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import React, { useContext } from 'react';
+import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { FirebaseContext } from '../../store/Context';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
+import { app } from '../../firebase/config';
 
-// import Logo from '../../olx-logo.png';
-// import './Login.css';
+import Logo from '../../olx-logo.png';
+import './Signup.css';
 
-// function Login() {
-//   const navigate = useNavigate();
-//   const [email, setEmail] = useState('');
-//   const [password, setPassword] = useState('')
-//   const { firebase } = useContext(FirebaseContext)
-//   const auth = getAuth();
+export default function Signup() {
+  const navigate = useNavigate();
+  const { auth } = useContext(FirebaseContext);
 
-//   // Initialize react-hoolk
+  // Initialize react-hook-form
+  const { register, handleSubmit, formState: { errors } } = useForm();
 
-//   useEffect(() => {
-//     // Redirecting to home if user is already logged in
-//     // something
-//     const unsubscribe = auth.onAuthStateChanged((user) => {
-//       if (user) {
-//         navigate('/');
-//       }
-//     });
+  // Handle form submission
+  const onSubmit = async (data) => {
+    const { username, email, phone, password } = data;
 
-//     return () => unsubscribe();
-//   }, [auth, navigate]);
+    try {
+      // Create user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
+      // Set displayName
+      await updateProfile(user, {
+        displayName: username,
+      });
 
-//   const handleLogin = (e) => {
-//     e.preventDefault();
-//     signInWithEmailAndPassword(auth, email, password)
-//       .then((userCredential) => {
-//         // Signed in 
-//         const user = userCredential.user;
-//         navigate("/")
-//         // ...
-//       })
-//       .catch((error) => {
-//         const errorCode = error.code;
-//         const errorMessage = error.message;
-//         alert(errorMessage)
-//       });
-//   }
+      // Save additional user data to Firestore
+      const firestore = getFirestore(app);
+      const userDocRef = doc(firestore, 'users', user.uid);
 
-//   return (
-//     <div>
-//       <div className="loginParentDiv">
-//         <img width="200px" height="200px" src={Logo} alt='logo'></img>
-//         <form onSubmit={handleLogin} >
-//           <label htmlFor="fname">Email</label>
-//           <br />
-//           <input
-//             className="input"
-//             type="email"
-//             value={email}
-//             onChange={(e) => setEmail(e.target.value)}
-//             id="fname"
-//             name="email"
-//           />
-//           <br />
-//           <label htmlFor="lname">Password</label>
-//           <br />
-//           <input
-//             className="input"
-//             type="password"
-//             value={password}
-//             onChange={(e) => setPassword(e.target.value)}
-//             id="lname"
-//             name="password"
-//           />
-//           <br />
-//           <br />
-//           <button>Login</button>
-//         </form>
-//         <a onClick={() => navigate('/signup')}>Signup</a>
-//       </div>
-//     </div>
-//   );
-// }
+      // Set document data with additional fields
+      await setDoc(userDocRef, {
+        username: username,
+        email: email,
+        phone: phone,
+        createdAt: new Date(),
+      });
 
-// export default Login;
+      // Redirect to login page
+      navigate("/login");
 
+      console.log('User signed up:', user);
+    } catch (error) {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      
+      if (errorCode === 'auth/email-already-in-use') {
+        alert('Email is already in use. Please try logging in.');
+      } else {
+        console.error('Signup error: ', errorCode, errorMessage);
+        alert('Signup error: ' + errorMessage);
+      }
+    }
+  };
+
+  return (
+    <div>
+      <div className="signupParentDiv">
+        <img width="200px" height="200px" src={Logo} alt="logo" />
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <label htmlFor="username">Username</label>
+          <br />
+          <input
+            className="input"
+            {...register("username", { required: true })}
+            type="text"
+            id="username"
+            name="username"
+          />
+          <br />
+          <error>
+            {errors.username?.type === "required" && "Name is required"}
+          </error>
+          <br />
+          <label htmlFor="email">Email</label>
+          <br />
+          <input
+            className="input"
+            {...register("email", { required: true, pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/ })}
+            type="text"
+            id="email"
+            name="email"
+          />
+          <br />
+          <error>
+            {errors.email?.type === "required" && "Email is required"}
+            {errors.email?.type === "pattern" && "Wrong format"}
+          </error>
+          <br />
+          <label htmlFor="phone">Phone</label>
+          <br />
+          <input
+            className="input"
+            {...register("phone", {
+              required: true,
+              pattern: /^[0-9]+$/,
+              minLength: 6,
+              maxLength: 12,
+            })}
+            type="text"
+            id="phone"
+            name="phone"
+          />
+          <br />
+          <error>
+            {errors.phone?.type === "required" && "Phone number is required"}
+            {errors.phone?.type === "pattern" && "Enter numbers only"}
+            {errors.phone?.type === "minLength" && "Entered number is less than 6 digits"}
+            {errors.phone?.type === "maxLength" && "Entered number is more than 12 digits"}
+          </error>
+          <br />
+          <label htmlFor="password">Password</label>
+          <br />
+          <input
+            className="input"
+            {...register("password", {
+              minLength: 4,
+            })}
+            type="text"
+            id="password"
+            name="password"
+          />
+          <br />
+          <error>
+            {errors.password?.type === "minLength" && "Entered password should be more than 4 letters"}
+          </error>
+          <br />
+          <button type="submit">Signup</button>
+        </form>
+        <a href="/login">Login</a>
+      </div>
+    </div>
+  );
+}

@@ -50,6 +50,12 @@ export default function Signup() {
       const errorCode = error.code;
       const errorMessage = error.message;
       console.error('Signup error: ', errorCode, errorMessage);
+      if (errorCode == 'auth/email-alredy-in-use') {
+        alert("Email is alredy in use")
+      } else {
+        console.error('Signup error: ', errorCode, errorMessage);
+        alert('Signup Error: ' + errorMessage);
+      }
     }
   };
 
